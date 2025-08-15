@@ -1,0 +1,39 @@
+voting app 
+inside python venv
+install flask with pip
+install redis with pip
+since we got permission denied, changed port to 5000
+added these environment variables
+export REDIS_HOST=localhost
+python app.y
+
+
+
+#############################################################################
+result app
+npm i
+added these environment variables
+export PG_HOST=localhost
+export PG_PORT=5432
+export PG_USER=postgres
+export PG_PASSWORD=secret   # or whatever you set in docker
+export PG_DATABASE=postgres
+node server.js
+
+
+
+#############################################################################
+worker app
+sudo snap install dotnet-sdk --classic
+sudo snap alias dotnet-sdk.dotnet dotnet
+added these environement variables
+export DB_HOST=localhost
+export DB_USERNAME=postgres
+export DB_PASSWORD=secret     # match your docker run password
+export DB_NAME=postgres
+dotnet build
+dotnet run
+
+
+
+ran redis and postgresql in containers before running the node/dotnet/python command to build/run the vote/worker and result

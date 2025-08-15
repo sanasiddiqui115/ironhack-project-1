@@ -1,0 +1,2 @@
+1. permission denied while running app.py
+app.py -> line 56 -> changed port to 5000
