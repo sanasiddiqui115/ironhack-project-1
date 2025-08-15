@@ -3,35 +3,32 @@
 
 services:
   vote:
-    image: pokfinner/vote:latest
- #  build: ./vote
+    image: sanasiddiqui115/vote:latest
     depends_on:
       redis:
-        condition: service_healthy 
+        condition: service_healthy
     ports:
       - "8080:80"
     networks:
       - back-tier
 
   result:
-    image: pokfinner/result:latest
- #  build: ./result
+    image: sanasiddiqui115/result:latest
     depends_on:
       db:
-        condition: service_healthy 
+        condition: service_healthy
     ports:
       - "8081:80"
     networks:
       - back-tier
 
   worker:
- #  build: ./worker
-    image: pokfinner/worker:latest
+    image: sanasiddiqui115/worker:latest
     depends_on:
       redis:
-        condition: service_healthy 
+        condition: service_healthy
       db:
-        condition: service_healthy 
+        condition: service_healthy
     networks:
       - back-tier
 
