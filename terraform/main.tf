@@ -164,6 +164,32 @@ resource "aws_security_group" "alb_sg" {
   }
 }
 
+
+resource "aws_security_group" "bastion_sg" {
+  name        = "bastion-sg"
+  description = "Allow SSH only from my laptop"
+  vpc_id      = aws_vpc.sana_vpc.id
+
+  ingress {
+    description = "SSH from my laptop"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["95.91.210.84/32"] # My laptop's IP
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "BastionSSHAccess"
+  }
+}
+
 resource "aws_security_group" "frontend_sg" {
   name        = "FrontendSecurityGroup"
   description = "Allowing incoming HTTP and HTTPS from the Internet"
@@ -174,6 +200,13 @@ resource "aws_security_group" "frontend_sg" {
     to_port         = 80
     protocol        = "tcp"
     security_groups = [aws_security_group.alb_sg.id]
+  }
+
+  ingress {
+    from_port       = 22
+    to_port         = 22
+    protocol        = "tcp"
+    security_groups = [aws_security_group.bastion_sg.id]
   }
 
   egress {
@@ -203,11 +236,11 @@ resource "aws_security_group" "backend_sg" {
   }
 
   ingress {
-    description     = "Allow SSH from Frontend Bastion"
+    description     = "Allow SSH from Bastion"
     from_port       = 22
     to_port         = 22
     protocol        = "tcp"
-    security_groups = [aws_security_group.frontend_sg.id]
+    security_groups = [aws_security_group.bastion_sg.id]
   }
 
   egress {
@@ -237,11 +270,11 @@ resource "aws_security_group" "postgres_sg" {
   }
 
   ingress {
-    description     = "Allow SSH from Frontend Bastion"
+    description     = "Allow SSH from Bastion"
     from_port       = 22
     to_port         = 22
     protocol        = "tcp"
-    security_groups = [aws_security_group.frontend_sg.id]
+    security_groups = [aws_security_group.bastion_sg.id]
   }
 
   ingress {
@@ -262,31 +295,6 @@ resource "aws_security_group" "postgres_sg" {
 
   tags = {
     Name = "PostgresSecurityGroup"
-  }
-}
-
-resource "aws_security_group" "bastion_sg" {
-  name        = "bastion-sg"
-  description = "Allow SSH only from my laptop"
-  vpc_id      = aws_vpc.sana_vpc.id
-
-  ingress {
-    description = "SSH from my laptop"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["95.91.210.84/32"] # My laptop's IP
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "BastionSSHAccess"
   }
 }
 
@@ -334,11 +342,11 @@ resource "aws_instance" "bastion_server" {
   ami                    = var.ami_id
   instance_type          = var.instance_type
   subnet_id              = aws_subnet.sana_public_subnet.id
-  vpc_security_group_ids = [aws_security_group.backend_sg.id]
+  vpc_security_group_ids = [aws_security_group.bastion_sg.id]
   key_name               = var.key_pair_name
 
   tags = {
-    Name = "frontend server"
+    Name = "bastion server"
   }
 }
 
