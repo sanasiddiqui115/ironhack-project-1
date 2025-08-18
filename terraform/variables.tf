@@ -29,3 +29,8 @@ variable "ami_id" {
   type        = string
   default     = "ami-0fd804ee843cc8bf9"
 }
+
+variable "secondary_subnet_availability_zone" {
+  type    = string
+  default = "us-east-1b"
+}

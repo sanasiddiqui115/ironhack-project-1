@@ -41,6 +41,17 @@ resource "aws_subnet" "sana_public_subnet" {
   }
 }
 
+resource "aws_subnet" "sana_public_subnet_2" {
+  vpc_id                  = aws_vpc.sana_vpc.id
+  cidr_block              = "10.0.3.0/24"
+  map_public_ip_on_launch = true
+  availability_zone       = var.secondary_subnet_availability_zone
+
+  tags = {
+    Name = "SanaSecondaryPublicSubnet"
+  }
+}
+
 resource "aws_subnet" "sana_private_subnet" {
   vpc_id                  = aws_vpc.sana_vpc.id
   cidr_block              = "10.0.2.0/24"
@@ -102,6 +113,12 @@ resource "aws_route_table" "sana_private_rt" {
   }
 }
 
+resource "aws_route_table_association" "sana_public_rt_assoc_2" {
+  subnet_id      = aws_subnet.sana_public_subnet_2.id
+  route_table_id = aws_route_table.sana_public_rt.id
+}
+
+
 resource "aws_route_table_association" "sana_public_rt_assoc" {
   subnet_id      = aws_subnet.sana_public_subnet.id
   route_table_id = aws_route_table.sana_public_rt.id
@@ -112,8 +129,8 @@ resource "aws_route_table_association" "sana_private_rt_assoc" {
   route_table_id = aws_route_table.sana_private_rt.id
 }
 
-resource "aws_security_group" "frontend_sg" {
-  name        = "FrontendSecurityGroup"
+resource "aws_security_group" "alb_sg" {
+  name        = "ALBSecurityGroup"
   description = "Allowing incoming HTTP and HTTPS from the Internet"
   vpc_id      = aws_vpc.sana_vpc.id
 
@@ -132,6 +149,31 @@ resource "aws_security_group" "frontend_sg" {
     to_port     = 443
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    description = "Allow all outbound traffic"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "ALBSecurityGroup"
+  }
+}
+
+resource "aws_security_group" "frontend_sg" {
+  name        = "FrontendSecurityGroup"
+  description = "Allowing incoming HTTP and HTTPS from the Internet"
+  vpc_id      = aws_vpc.sana_vpc.id
+
+  ingress {
+    from_port       = 80
+    to_port         = 80
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb_sg.id]
   }
 
   egress {
@@ -265,7 +307,7 @@ resource "aws_instance" "frontend_server" {
 
   ami                    = var.ami_id
   instance_type          = var.instance_type
-  subnet_id              = aws_subnet.sana_public_subnet.id
+  subnet_id              = aws_subnet.sana_private_subnet.id
   vpc_security_group_ids = [aws_security_group.frontend_sg.id]
   key_name               = var.key_pair_name
 
@@ -297,5 +339,59 @@ resource "aws_instance" "bastion_server" {
 
   tags = {
     Name = "frontend server"
+  }
+}
+
+
+resource "aws_lb_target_group" "frontend_tg" {
+  name     = "frontend-tg"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = aws_vpc.sana_vpc.id
+
+  health_check {
+    path                = "/"
+    protocol            = "HTTP"
+    matcher             = "200"
+    interval            = 30
+    timeout             = 5
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+  }
+
+  target_type = "instance"
+}
+
+resource "aws_lb_target_group_attachment" "frontend_attachement" {
+  target_group_arn = aws_lb_target_group.frontend_tg.arn
+  target_id        = aws_instance.frontend_server.id
+  port             = 80
+}
+
+resource "aws_lb" "alb" {
+  name               = "sana-project1-alb"
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.alb_sg.id]
+  subnets = [
+    aws_subnet.sana_public_subnet.id,
+    aws_subnet.sana_public_subnet_2.id
+  ]
+
+  enable_deletion_protection = false
+
+  tags = {
+    Name = "sana-project1-alb"
+  }
+
+}
+
+resource "aws_lb_listener" "frontend_listener" {
+  load_balancer_arn = aws_lb.alb.arn
+  port              = 80
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.frontend_tg.arn
   }
 }

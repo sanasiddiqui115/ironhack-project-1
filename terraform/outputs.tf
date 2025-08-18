@@ -10,3 +10,8 @@ output "postgres_private_ip" {
   description = "The private IP address of the Postgres instance"
   value       = aws_instance.postgres_server.private_ip
 }
+output "alb_public_dns" {
+  description = "The Public DNS of the Applicaiton Load Balancer"
+  value       = aws_lb.alb.dns_name
+}
+
