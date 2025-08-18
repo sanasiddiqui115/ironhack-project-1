@@ -15,3 +15,19 @@ output "alb_public_dns" {
   value       = aws_lb.alb.dns_name
 }
 
+output "ansible_inventory" {
+  description = "Dynamic Ansible inventory"
+  value       = <<EOT
+[bastion]
+${aws_instance.bastion_server.public_ip} ansible_user=ubuntu ansible_ssh_private_key_file=../terraform/sana_project1.pem
+
+[frontend]
+${aws_instance.frontend_server.private_ip} ansible_user=ubuntu ansible_ssh_private_key_file=../terraform/sana_project1.pem
+
+[backend]
+${aws_instance.backend_server.private_ip} ansible_user=ubuntu ansible_ssh_private_key_file=../terraform/sana_project1.pem
+
+[db]
+${aws_instance.postgres_server.private_ip} ansible_user=ubuntu ansible_ssh_private_key_file=../terraform/sana_project1.pem
+EOT
+}
