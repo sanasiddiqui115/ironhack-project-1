@@ -263,14 +263,11 @@ resource "aws_instance" "backend_server" {
 
 resource "aws_instance" "frontend_server" {
 
-  ami           = var.ami_id
-  instance_type = var.instance_type
-  subnet_id     = aws_subnet.sana_public_subnet.id
-  vpc_security_group_ids = [
-    aws_security_group.frontend_sg.id,
-    aws_security_group.bastion_sg.id
-  ]
-  key_name = var.key_pair_name
+  ami                    = var.ami_id
+  instance_type          = var.instance_type
+  subnet_id              = aws_subnet.sana_public_subnet.id
+  vpc_security_group_ids = [aws_security_group.frontend_sg.id]
+  key_name               = var.key_pair_name
 
   tags = {
     Name = "frontend server"
@@ -287,5 +284,18 @@ resource "aws_instance" "postgres_server" {
 
   tags = {
     Name = "postgres server"
+  }
+}
+
+resource "aws_instance" "bastion_server" {
+
+  ami                    = var.ami_id
+  instance_type          = var.instance_type
+  subnet_id              = aws_subnet.sana_public_subnet.id
+  vpc_security_group_ids = [aws_security_group.backend_sg.id]
+  key_name               = var.key_pair_name
+
+  tags = {
+    Name = "frontend server"
   }
 }
