@@ -1,0 +1,24 @@
+---
+- name: Configure postgres with postgres
+  hosts: postgres
+  become: true
+  gather_facts: false
+
+  tasks:
+    - name: Create Docker network
+      docker_network:
+        name: back-tier
+        driver: bridge
+
+    - name: Run PostgresS Container
+      docker_container:
+        name: db
+        image: postgres:latest
+        state: started
+        restart_policy: always
+        published_ports:
+          - "5432:5432"
+        network_mode: back-tier
+        env:
+          POSTGRES_USER: "postgres"
+          POSTGRES_PASSWORD: "postgres"

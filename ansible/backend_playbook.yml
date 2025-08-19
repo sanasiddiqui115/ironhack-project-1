@@ -1,0 +1,52 @@
+- name: Configure backend with Worker and Redis
+  hosts: backend
+  become: true
+  gather_facts: false
+
+  tasks:
+    - name: Create Docker network
+      docker_network:
+        name: back-tier
+        driver: bridge
+
+    - name: Run Redis Container
+      docker_container:
+        name: redis
+        image: redis:latest
+        state: started
+        restart_policy: always
+        networks:
+          - name: back-tier
+        published_ports:
+          - "6379:6379"
+        command: ["redis-server", "--protected-mode", "no"]
+
+    - name: Wait for Redis to be ready
+      wait_for:
+        host: 127.0.0.1
+        port: 6379
+        timeout: 60
+
+    - name: Pull worker image
+      docker_image:
+        name: sanasiddiqui115/worker
+        tag: latest
+        source: pull
+
+    - name: Run Worker Container
+      docker_container:
+        name: worker
+        image: sanasiddiqui115/worker:latest
+        state: started
+        restart_policy: always
+        networks:
+          - name: back-tier
+            aliases:
+              - db
+        env:
+          DB_HOST: "10.0.2.190" # Postgres private IP (C)
+          DB_USERNAME: "postgres"
+          DB_PASSWORD: "postgres" # <-- updated
+          DB_NAME: "postgres"
+          REDIS_HOST: "redis" # same host as worker, same docker network
+          REDIS_PORT: "6379"
