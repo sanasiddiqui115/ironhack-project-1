@@ -43,9 +43,21 @@ resource "aws_lb_target_group_attachment" "vote" {
   port             = 80
 }
 
+resource "aws_lb_target_group_attachment" "vote2attach" {
+  target_group_arn = aws_lb_target_group.vote.arn
+  target_id        = var.vote_instance2_id
+  port             = 80
+}
+
 resource "aws_lb_target_group_attachment" "result" {
   target_group_arn = aws_lb_target_group.result.arn
   target_id        = var.result_instance_id
+  port             = 80
+}
+
+resource "aws_lb_target_group_attachment" "result2attach" {
+  target_group_arn = aws_lb_target_group.result.arn
+  target_id        = var.result_instance2_id
   port             = 80
 }
 

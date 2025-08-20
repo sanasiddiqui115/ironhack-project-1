@@ -34,6 +34,9 @@ module "alb" {
   vote_instance_id   = module.app.vote_instance_id
   result_instance_id = module.app.result_instance_id
 
+  vote_instance2_id   = module.app.vote_instance2_id
+  result_instance2_id = module.app.result_instance2_id
+
   root_domain = var.root_domain
 }
 

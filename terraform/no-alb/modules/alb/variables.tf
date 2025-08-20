@@ -25,4 +25,11 @@ variable "result_instance_id" {
 variable "root_domain" {
   type = string
 }
-    
+
+variable "result_instance2_id" {
+  type = string
+}
+
+variable "vote_instance2_id" {
+  type = string
+}

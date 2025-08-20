@@ -57,3 +57,23 @@ resource "aws_instance" "postgres" {
 
   tags = { Name = "postgres" }
 }
+
+resource "aws_instance" "vote_2" {
+  ami                    = var.ami_id
+  instance_type          = var.instance_type
+  subnet_id              = var.subnet_vote_id
+  vpc_security_group_ids = [var.vote_sg_id]
+  key_name               = var.key_pair_name
+
+  tags = { Name = "vote-2" }
+}
+
+resource "aws_instance" "result_2" {
+  ami                    = var.ami_id
+  instance_type          = var.instance_type
+  subnet_id              = var.subnet_result_id
+  vpc_security_group_ids = [var.result_sg_id]
+  key_name               = var.key_pair_name
+
+  tags = { Name = "result-2" }
+}
