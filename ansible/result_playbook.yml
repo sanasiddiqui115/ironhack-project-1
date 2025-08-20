@@ -1,5 +1,5 @@
-- name: Configure frontend with Vote and Result
-  hosts: frontend
+- name: Configure frontend with Result
+  hosts: result
   become: true
   gather_facts: false
 
@@ -9,37 +9,11 @@
         name: back-tier
         driver: bridge
 
-    - name: Pull vote image
-      docker_image:
-        name: sanasiddiqui115/vote
-        tag: latest
-        source: pull
-
-    - name: Run Vote (connect to Redis on backend B)
-      docker_container:
-        name: vote
-        image: sanasiddiqui115/vote:latest
-        state: started
-        restart_policy: unless-stopped
-        published_ports:
-          - "8080:80"
-        networks:
-          - name: back-tier
-        env:
-          REDIS_HOST: "10.0.2.44" # backend private IP
-          REDIS_PORT: "6379"
-
     - name: Pull result image
       docker_image:
         name: sanasiddiqui115/result
         tag: latest
         source: pull
-
-    - name: Wait for Postgres on C to be reachable
-      wait_for:
-        host: "10.0.2.197" # postgres private IP
-        port: 5432
-        timeout: 60
 
     - name: Run Result (connect to Postgres on C)
       docker_container:
@@ -48,7 +22,7 @@
         state: started
         restart_policy: unless-stopped
         published_ports:
-          - "8081:80"
+          - "80:80"
         networks:
           - name: back-tier
         recreate: true

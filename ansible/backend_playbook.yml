@@ -44,7 +44,7 @@
             aliases:
               - db
         env:
-          DB_HOST: "10.0.2.190" # Postgres private IP (C)
+          DB_HOST: "10.0.2.197" # Postgres private IP (C)
           DB_USERNAME: "postgres"
           DB_PASSWORD: "postgres" # <-- updated
           DB_NAME: "postgres"
