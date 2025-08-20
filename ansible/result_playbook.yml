@@ -1,5 +1,5 @@
 - name: Configure frontend with Result
-  hosts: result
+  hosts: resultgroup
   become: true
   gather_facts: false
 

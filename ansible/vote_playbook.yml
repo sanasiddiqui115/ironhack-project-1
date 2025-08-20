@@ -1,5 +1,5 @@
 - name: Configure frontend with Vote
-  hosts: vote
+  hosts: votegroup
   become: true
   gather_facts: false
 
